@@ -1,0 +1,10 @@
+# Editor settings
+*.vscode
+*.idea
+
+# System caches
+*.DS_Store
+__pycache__/
+
+# Environment files
+.python-version
