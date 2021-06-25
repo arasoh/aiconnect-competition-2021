@@ -4,6 +4,8 @@ import aiconnect.preprocessing as preprocessing
 
 
 def app():
+    neural_network = model.neural_network()
+
     return 0
 
 
