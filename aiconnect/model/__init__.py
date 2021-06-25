@@ -1,7 +1,11 @@
-from ._logistic_regression import LogisticRegression
-
-from ._resnet50 import Resnet50
-
+from ._neural_network import NeuralNetwork
+from ._random_forest import RandomForest
+from ._regression import LogisticRegression
 from ._svm import SVM
 
-__all__ = ["LogisticRegression", "Resnet50", "SVM"]
+__all__ = [
+    "NeuralNetwork",
+    "RandomForest",
+    "LogisticRegression",
+    "SVM",
+]
