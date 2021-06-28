@@ -6,9 +6,9 @@ import torch.optim as optim
 import torch.utils as utils
 
 
-class NeuralNetwork(nn.modules):
+class DNN(nn.Module):
     def __init__(self):
-        super(self).__init__()
+        super().__init__()
         self.dropout_rate = 0.5
 
         self.layer1 = nn.Sequential(
@@ -47,50 +47,57 @@ class NeuralNetwork(nn.modules):
         return out
 
 
-def neural_network(dataset, labels):
-    device = "cuda" if cuda.is_available() else "cpu"
+class NeuralNetwork:
+    def __init__(self) -> None:
+        self.device = "cuda" if cuda.is_available() else "cpu"
 
-    # for reproducibility
-    torch.manual_seed(777)
-    if device is "cuda":
-        cuda.manual_seed_all(777)
+    def preprocessing(self, dataset, labels):
 
-    learning_rate = 0.001
-    training_epochs = 16
-    batch_size = 128
+        dataset = torch.FloatTensor(dataset)
+        labels = torch.LongTensor(labels)
 
-    dataset = torch.FloatTensor(dataset)
-    labels = torch.LongTensor(labels)
+        model = DNN().to(self.device)
+        learning_rate = 0.001
 
-    data_loader = utils.data.DataLoader(
-        dataset=dataset,
-        batch_size=batch_size,
-        shuffle=True,
-    )
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    model = NeuralNetwork().to(device)
+        return model, optimizer
 
-    loss = nn.CrossEntropyLoss().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    def model_training(self, model, optimizer, dataset, labels):
+        # for reproducibility
+        torch.manual_seed(1)
+        if self.device is "cuda":
+            cuda.manual_seed_all(1)
 
-    total_batch = len(data_loader)
-    model.train()
+        training_epochs = 16
+        batch_size = 128
 
-    print("Training begins...")
-    for epoch in range(training_epochs):
-        average_cost = 0
+        data_loader = utils.data.DataLoader(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=True,
+        )
 
-        for data, label in data_loader:
-            data = data.to(device)
-            label = label.to(device)
+        total_batch = len(data_loader)
 
-            hypothesis = model(data)
-            cost = loss(hypothesis, label)
+        print("Training begins...")
+        for epoch in range(training_epochs):
+            average_cost = 0
 
-            optimizer.zero_grad()
-            cost.backward()
-            optimizer.step()
+            for data, label in data_loader:
+                data = data.to(self.device)
+                label = label.to(self.device)
 
-            average_cost += cost / total_batch
+                hypothesis = model(data)
+                cost = F.cross_entropy(hypothesis, label)
 
-    print("Training is completed.")
+                optimizer.zero_grad()
+                cost.backward()
+                optimizer.step()
+
+                average_cost += cost / total_batch
+
+        print("Training is completed.")
+
+    def model_validation(self, model, optimizer, dataset, labels):
+        pass

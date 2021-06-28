@@ -29,22 +29,24 @@
 
 #### 2.3.1. Requirements.txt
 
-본 애플리케이션의 소스코드 내에서 활용한 모든 외부 라이브러리는 `requirements.txt`에 해당 라이브러리 리스트를 저장하여 팀원들에게 공유하여야 한다.
+본 애플리케이션의 소스코드 내에서 활용한 모든 외부 라이브러리는 `requirements_***.txt`에 해당 라이브러리 리스트를 저장하여 팀원들에게 공유하여야 한다.
 
 ```
-$ pip freeze > requirements.txt
+$ pip freeze > requirements_cpu.txt   // CPU 전용 컴퓨터
+$ pip freeze > requirements_cuda11.txt   // CUDA Toolkit 11 버전이 설치된 컴퓨터
 ```
 
-`requirements.txt`에 저장된 외부 라이브러리를 다운로드 받는 명령어는 다음과 같다.
+`requirements_***.txt`에 저장된 외부 라이브러리를 다운로드 받는 명령어는 다음과 같다.
 
 ```
-$ pip install -r requirements.txt
+$ pip install -r requirements_cpu.txt   // CPU 전용 컴퓨터
+$ pip install -r requirements_cuda11.txt   // CUDA Toolkit 11 버전이 설치된 컴퓨터
 ```
 
 ### 2.4. Python 애플리케이션 실행
 
 ```
-$ python app.py
+$ python app.py [모델] [훈련/검증]
 ```
 
 ### 2.5. Python 가상환경
@@ -57,11 +59,19 @@ $ python app.py
 
 #### 2.5.2. 비교
 
-|               | GUI | Bash | Zsh |     | Windows | MacOS | Linux |
-| :-----------: | :-: | :--: | :-: | :-: | :-----: | :---: | ----- |
-| **Anaconda**  |  O  |  O   |  O  |     |    O    |   O   | O     |
-| **Miniconda** |     |  O   |  O  |     |    O    |   O   | O     |
-|   **pyenv**   |     |  O   |  O  |     |         |   O   | O     |
+|                       | Anaconda | Miniconda | pyenv |
+| :-------------------: | :------: | :-------: | :---: |
+| **사용자 인터페이스** |   ---    |    ---    |  ---  |
+|          GUI          |    O     |     O     |   O   |
+|         Bash          |          |     O     |   O   |
+|          Zsh          |          |     O     |   O   |
+|     **운영체제**      |   ---    |    ---    |  ---  |
+|        Windows        |    O     |     O     |       |
+|          WSL          |          |     O     |   O   |
+|         MacOS         |    O     |     O     |   O   |
+|         Linux         |    O     |     O     |   O   |
+
+##### **표 1.** 가상환경 프로그램 별 차이점 비교
 
 ## 3. 분류모델 성능평가
 
@@ -77,7 +87,7 @@ $ python app.py
 |  **예측 참**  |   TP    |    FP     |
 | **예측 거짓** |   FN    |    FP     |
 
-##### **표 1.** Confusion Matrix
+##### **표 2.** Confusion Matrix
 
 정밀도 (Precision)
 
