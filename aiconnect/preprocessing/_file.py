@@ -1,8 +1,9 @@
+import csv
 import numpy as np
 import pandas as pd
 
 
-class Dataframe:
+class File:
     def __init__(self):
         pass
 
@@ -74,17 +75,3 @@ class Dataframe:
         )
 
         return new_dataframe
-
-    def normalize_columns(self, dataframe, excluded: list = None):
-        if excluded is not None:
-            dataframe = dataframe.drop(columns=excluded)
-
-        array = dataframe.to_numpy()
-
-        print(1)
-
-    def type_conversion(self, dataframe, target_type: str = "array"):
-        if target_type is "array":
-            result = dataframe.to_numpy()
-
-        return result
