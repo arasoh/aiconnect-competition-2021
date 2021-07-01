@@ -24,7 +24,12 @@ class File:
 
         return dataframe, labels
 
-    def drop_columns(self, dataframe, columns: list):
+    def select_columns(self, dataframe, columns: list) -> None:
+        dataframe = dataframe.filter(items=columns)
+
+        return dataframe
+
+    def drop_columns(self, dataframe, columns: list) -> None:
         dataframe = dataframe.drop(columns, axis=1)
 
         return dataframe

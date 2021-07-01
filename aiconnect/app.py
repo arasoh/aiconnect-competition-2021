@@ -12,7 +12,10 @@ def app():
     f = prep.File()
 
     train_data, train_labels = f.build_dataframe(train_path, train=True)
-    test_data, test_labels = f.build_dataframe(test_path, train=False)
+    test_data, _ = f.build_dataframe(test_path, train=False)
+
+    train_identifiers = f.select_columns(train_data, ["EMAIL"])
+    test_identifiers = f.select_columns(test_data, ["EMAIL"])
 
     drop_columns = [
         "summary_date",
@@ -53,10 +56,8 @@ def app():
 
     norm = prep.Normalizer()
     enc = prep.Encoder()
-    dec = prep.Decoder()
 
     # TODO: CSV 파일 내보내기 기능 구현 및 함수 테스트 중
-    test_appearances = dec.user_appearances(test_data)
 
     train_data = norm.normalize(train_data_array)
     test_data = norm.normalize(test_dataset)
@@ -66,27 +67,36 @@ def app():
 
     # users = df.encode_users(train_data)
 
+    dec = prep.Decoder()
+
+    train_appearances = dec.user_appearances(train_identifiers)
+    test_appearances = dec.user_appearances(test_identifiers)
+
     """
     Classifcation Models
     """
 
-    ### Support Vector Machine
-    svm = model.SVM(target="nlin")
-    svm.model_training(train_data, train_labels)
+    ### Support Vector Machine, target="lin" -> Linear SVM, target="nlin" -> Nonlinear SVM
+    # svm = model.SVM(target="nlin")
+    # svm.model_training(train_data, train_labels)
+    #
+    # train_pred = svm.label_prediction(train_data)
+    # train_pred = dec.squeeze_predictions(train_pred, train_appearances)
+    #
+    # train_score = svm.f1_score(train_labels, train_pred)
 
-    train_pred = svm.label_prediction(train_data)
-    train_score = svm.f1_score(train_labels, train_pred)
-
-    test_pred = svm.label_prediction(test_dataset)
+    # test_pred = svm.label_prediction(test_dataset)
 
     ### Random Forest
-    # randf = model.RandomForest()
-    # randf.model_training(train_data, train_labels)
-    #
-    # train_pred = randf.label_prediction(train_data)
-    # test_score = randf.f1_score(train_labels, train_pred)
+    randf = model.RandomForest()
+    randf.model_training(train_data, train_labels)
 
-    # test_pred = randf.label_prediction(test_dataset)
+    train_pred = randf.label_prediction(train_data)
+    train_pred = dec.squeeze_predictions(train_pred, train_appearances)
+
+    test_score = randf.f1_score(train_labels, train_pred)
+
+    test_pred = randf.label_prediction(test_dataset)
 
     print("breakpoint")
     # nn = model.NeuralNetwork()

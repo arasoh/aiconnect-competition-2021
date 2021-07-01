@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -41,3 +42,32 @@ class Decoder:
                 users[user_email] = data_count
 
         return users
+
+    def squeeze_predictions(self, pred, appearances: dict, margin: float = 0.4) -> None:
+        slice_start = 0
+
+        cn_max = 1 * margin
+        mci_max = 1 + margin
+
+        pred = np.squeeze(pred)
+        new_pred = []
+
+        for key, value in appearances.items():
+            slice_count = value
+            scores = pred[slice_start:slice_count]
+
+            average_score = np.average(scores)
+
+            if average_score <= cn_max:
+                final_score = 0
+            elif (cn_max < average_score) and (average_score <= mci_max):
+                final_score = 1
+            else:
+                final_score = 2
+
+            new_pred.append(final_score)
+            slice_start = slice_count
+
+        new_pred = np.array(new_pred).reshape(-1, 1)
+
+        return new_pred
