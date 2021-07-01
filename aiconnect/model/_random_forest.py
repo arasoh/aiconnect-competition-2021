@@ -4,19 +4,40 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 class Classifier:
-    def __init__(self, depth: int = 10, state: int = 5) -> None:
+    def __init__(
+        self,
+        n_estimators: int = 100,
+        depth: int = 10,
+        state: int = 5,
+        verbose: bool = False,
+    ) -> None:
+        self.n_estimators = n_estimators
         self.depth = depth
         self.state = state
+        self.verbose = verbose
 
     def forward(self):
-        clf = RandomForestClassifier(max_depth=self.depth, random_state=self.state)
+        clf = RandomForestClassifier(
+            n_estimators=self.n_estimators,
+            max_depth=self.depth,
+            random_state=self.state,
+            verbose=self.verbose,
+        )
 
         return clf
 
 
 class RandomForest:
-    def __init__(self) -> None:
-        clf = Classifier()
+    def __init__(self, params: dict = None) -> None:
+        if params is not None:
+            clf = Classifier(
+                n_estimators=params["n_estimators"],
+                depth=params["depth"],
+                state=params["state"],
+                verbose=params["verbose"],
+            )
+        else:
+            clf = Classifier()
         self.model = clf.forward()
 
     def model_training(self, data, labels) -> None:

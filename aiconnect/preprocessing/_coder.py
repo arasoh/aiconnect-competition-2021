@@ -45,15 +45,16 @@ class Decoder:
 
     def squeeze_predictions(self, pred, appearances: dict, margin: float = 0.4) -> None:
         slice_start = 0
+        slice_count = 0
 
-        cn_max = 1 * margin
-        mci_max = 1 + margin
+        cn_max = 1 - margin
+        mci_max = 2 - margin
 
         pred = np.squeeze(pred)
         new_pred = []
 
         for key, value in appearances.items():
-            slice_count = value
+            slice_count = slice_count + value
             scores = pred[slice_start:slice_count]
 
             average_score = np.average(scores)
@@ -69,5 +70,14 @@ class Decoder:
             slice_start = slice_count
 
         new_pred = np.array(new_pred).reshape(-1, 1)
+
+        return new_pred
+
+    def decode_labels(self, pred, diagnosis: dict):
+        diagnosis_names = list(diagnosis.keys())
+        new_pred = []
+
+        for pred_code in np.squeeze(pred):
+            new_pred.append(diagnosis_names[pred_code])
 
         return new_pred
