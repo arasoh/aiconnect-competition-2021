@@ -10,12 +10,17 @@ def app():
     diagnosis = {"CN": 0, "MCI": 1, "Dem": 2}
 
     f = prep.File()
+    enc = prep.Encoder()
 
     train_data, train_labels = f.build_dataframe(train_path, train=True)
     test_data, _ = f.build_dataframe(test_path, train=False)
 
     train_identifiers = f.select_columns(train_data, ["EMAIL"])
     test_identifiers = f.select_columns(test_data, ["EMAIL"])
+
+    train_labels = f.encode_labels(train_labels, diagnosis)
+    train_true = f.select_columns(train_labels, ["diagnosis_code"])
+    train_true = enc.encode_labels(train_true.to_numpy()).reshape(-1, 1)
 
     drop_columns = [
         "summary_date",
@@ -31,7 +36,6 @@ def app():
     test_data = f.drop_columns(test_data, columns=drop_columns)
     del drop_columns
 
-    train_labels = f.encode_labels(train_labels, diagnosis)
     train_dataset = train_labels.join(train_data.set_index("EMAIL"), on="user_email")
 
     drop_columns = [
@@ -55,7 +59,6 @@ def app():
     train_label_array = train_dataset[:, 0]
 
     norm = prep.Normalizer()
-    enc = prep.Encoder()
 
     # TODO: CSV 파일 내보내기 기능 구현 및 함수 테스트 중
 
@@ -76,23 +79,42 @@ def app():
     Classifcation Models
     """
 
-    ### Support Vector Machine, target="lin" -> Linear SVM, target="nlin" -> Nonlinear SVM
-    # svm = model.SVM(target="nlin")
+    ### Support Vector Machine
+    # train_params = {
+    #     "C": 10,
+    #     "kernel": "rbf",
+    #     "degree": 3,
+    #     "prob": True,
+    #     "tol": 1e-4,
+    #     "verbose": False,
+    #     "state": 0,
+    # }
+    # svm = model.SVM(params=train_params)
+    #
+    # train_labels = np.squeeze(train_labels)
     # svm.model_training(train_data, train_labels)
     #
     # train_pred = svm.label_prediction(train_data)
-    # train_pred = dec.squeeze_predictions(train_pred, train_appearances)
+    # train_pred = dec.squeeze_predictions(train_pred, train_appearances, margin=0.4)
     #
     # train_score = svm.f1_score(train_labels, train_pred)
-
+    #
     # test_pred = svm.label_prediction(test_dataset)
 
     ### Random Forest
-    randf = model.RandomForest()
+    train_params = {
+        "n_estimators": 128,
+        "depth": 32,
+        "state": 48,
+        "verbose": True,
+    }
+    randf = model.RandomForest(params=train_params)
+
+    train_labels = np.squeeze(train_labels)
     randf.model_training(train_data, train_labels)
 
     train_pred = randf.label_prediction(train_data)
-    train_pred = dec.squeeze_predictions(train_pred, train_appearances)
+    train_pred = dec.squeeze_predictions(train_pred, train_appearances, margin=0.4)
 
     test_score = randf.f1_score(train_labels, train_pred)
 

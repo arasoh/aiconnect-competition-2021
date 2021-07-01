@@ -52,6 +52,31 @@ class File:
 
         return user_dataframe
 
+    # def encode_true(self, dataframe, diagnosis: dict):
+    #     for data in dataframe.itertuples():
+    #         if data.Index is 0:
+    #             array = np.array(
+    #                 [
+    #                     diagnosis[data.DIAG_NM],
+    #                 ],
+    #                 ndmin=2,
+    #             )
+    #         else:
+    #             array_temp = np.array(
+    #                 [
+    #                     diagnosis[data.DIAG_NM],
+    #                 ],
+    #                 ndmin=2,
+    #             )
+    #             array = np.concatenate((array, array_temp), axis=0)
+    #
+    #         new_dataframe = pd.DataFrame(
+    #             array,
+    #             columns=["diagnosis_index", "diagnosis_name", "user_email"],
+    #         )
+    #
+    #     return new_dataframe
+
     def encode_labels(self, dataframe, diagnosis: dict):
         for data in dataframe.itertuples():
             if data.Index is 0:
@@ -76,7 +101,7 @@ class File:
 
         new_dataframe = pd.DataFrame(
             data_array,
-            columns=["diagnosis_index", "diagnosis_name", "user_email"],
+            columns=["diagnosis_code", "diagnosis_name", "user_email"],
         )
 
         return new_dataframe

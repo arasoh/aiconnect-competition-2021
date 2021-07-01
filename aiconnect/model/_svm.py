@@ -5,45 +5,48 @@ import numpy as np
 from sklearn.svm import LinearSVC, SVC
 
 
-class Linear:
-    def __init__(self, random_state: int = 0, tol=1e-5) -> None:
-        self.random_state = random_state
-        self.tol = tol
-
-    def forward(self) -> None:
-        clf = LinearSVC(random_state=self.random_state, tol=self.tol)
-
-        return clf
-
-
-class NonLinear:
-    def __init__(self, C: float = 1.0) -> None:
+class Classifier:
+    def __init__(
+        self,
+        C: float = 1.0,
+        kernel: str = "rbf",
+        degree: int = 3,
+        prob: bool = False,
+        tol: float = 1e-3,
+        verbose: bool = False,
+        state: int = None,
+    ) -> None:
         self.C = C
+        self.kernel = kernel
+        self.degree = degree
+        self.prob = prob
+        self.tol = tol
+        self.verbose = verbose
+        self.state = state
 
     def forward(self):
-        clf = SVC(C=self.C)
+        clf = SVC(
+            C=self.C,
+            kernel=self.kernel,
+            degree=self.degree,
+            probability=self.prob,
+            tol=self.tol,
+            verbose=self.verbose,
+            random_state=self.state,
+        )
 
         return clf
 
 
 class SVM:
-    def __init__(self, target: str = "linear", params: dict = None):
-        if target is "lin":
-            if params is not None:
-                clf = Linear(
-                    random_state=params["random_state"],
-                    tol=params["tol"],
-                )
-            else:
-                clf = Linear()
+    def __init__(self, params: dict = None):
 
-        if target is "nlin":
-            if params is not None:
-                clf = NonLinear(
-                    C=params["C"],
-                )
-            else:
-                clf = NonLinear()
+        if params is not None:
+            clf = Classifier(
+                C=params["C"],
+            )
+        else:
+            clf = Classifier()
 
         self.model = clf.forward()
 

@@ -45,15 +45,16 @@ class Decoder:
 
     def squeeze_predictions(self, pred, appearances: dict, margin: float = 0.4) -> None:
         slice_start = 0
+        slice_count = 0
 
-        cn_max = 1 * margin
-        mci_max = 1 + margin
+        cn_max = 1 - margin
+        mci_max = 2 - margin
 
         pred = np.squeeze(pred)
         new_pred = []
 
         for key, value in appearances.items():
-            slice_count = value
+            slice_count = slice_count + value
             scores = pred[slice_start:slice_count]
 
             average_score = np.average(scores)
