@@ -13,6 +13,15 @@ class Encoder:
 
         return encoded_labels
 
+    def get_labels(pred, diagnosis: dict):
+        diagnosis_names = diagnosis.keys()
+        pred_labels = []
+
+        for pred_code in pred:
+            pred_labels.append(diagnosis_names[pred_code])
+
+        return pred_labels
+
 
 class Decoder:
     def __init__(self) -> None:

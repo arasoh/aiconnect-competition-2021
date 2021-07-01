@@ -120,7 +120,12 @@ def app():
 
     test_pred = randf.label_prediction(test_dataset)
 
-    print("breakpoint")
+    test_pred_enc = enc.get_labels(test_pred, diagnosis)
+
+    output_data = [list(test_appearances.keys()), test_pred_enc]
+    f.write_csv(output_data, test_path)
+
+    ### Neural network
     # nn = model.NeuralNetwork()
     #
     # metric = metrics.Metrics

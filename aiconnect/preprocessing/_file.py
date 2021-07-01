@@ -105,3 +105,12 @@ class File:
         )
 
         return new_dataframe
+
+    def write_csv(self, data, path):
+        csv_path = path + "/submission.csv"
+
+        dataframe = pd.DataFrame(data, columns=["ID", "DIAG_NM"])
+
+        dataframe.to_csv(path)
+
+        return "CSV 파일이 생성됨"
