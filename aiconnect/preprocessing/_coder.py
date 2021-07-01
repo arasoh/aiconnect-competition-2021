@@ -13,15 +13,6 @@ class Encoder:
 
         return encoded_labels
 
-    def get_labels(pred, diagnosis: dict):
-        diagnosis_names = diagnosis.keys()
-        pred_labels = []
-
-        for pred_code in pred:
-            pred_labels.append(diagnosis_names[pred_code])
-
-        return pred_labels
-
 
 class Decoder:
     def __init__(self) -> None:
@@ -79,5 +70,14 @@ class Decoder:
             slice_start = slice_count
 
         new_pred = np.array(new_pred).reshape(-1, 1)
+
+        return new_pred
+
+    def decode_labels(self, pred, diagnosis: dict):
+        diagnosis_names = list(diagnosis.keys())
+        new_pred = []
+
+        for pred_code in np.squeeze(pred):
+            new_pred.append(diagnosis_names[pred_code])
 
         return new_pred
