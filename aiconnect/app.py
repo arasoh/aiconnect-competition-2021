@@ -1,6 +1,5 @@
 import aiconnect.model as model
-import aiconnect.preprocessing as preprocessing
-import aiconnect.validation as metrics
+import aiconnect.preprocessing as prep
 
 import numpy as np
 
@@ -10,10 +9,13 @@ def app():
     test_path = "./data/test"
     diagnosis = {"CN": 0, "MCI": 1, "Dem": 2}
 
-    df = preprocessing.Dataframe()
+    f = prep.File()
 
-    train_data, train_labels = df.build_dataframe(train_path, train=True)
-    test_data, test_labels = df.build_dataframe(test_path, train=False)
+    train_data, train_labels = f.build_dataframe(train_path, train=True)
+    test_data, _ = f.build_dataframe(test_path, train=False)
+
+    train_identifiers = f.select_columns(train_data, ["EMAIL"])
+    test_identifiers = f.select_columns(test_data, ["EMAIL"])
 
     drop_columns = [
         "summary_date",
@@ -25,24 +27,24 @@ def app():
         "timezone",
         "sleep_total",
     ]
-    train_data = df.drop_columns(train_data, columns=drop_columns)
-    test_data = df.drop_columns(test_data, columns=drop_columns)
+    train_data = f.drop_columns(train_data, columns=drop_columns)
+    test_data = f.drop_columns(test_data, columns=drop_columns)
     del drop_columns
 
-    train_labels = df.encode_labels(train_labels, diagnosis)
+    train_labels = f.encode_labels(train_labels, diagnosis)
     train_dataset = train_labels.join(train_data.set_index("EMAIL"), on="user_email")
 
     drop_columns = [
         "diagnosis_name",
         "user_email",
     ]
-    train_dataset = df.drop_columns(train_dataset, columns=drop_columns)
+    train_dataset = f.drop_columns(train_dataset, columns=drop_columns)
     del drop_columns
 
     drop_columns = [
         "EMAIL",
     ]
-    test_dataset = df.drop_columns(test_data, columns=drop_columns)
+    test_dataset = f.drop_columns(test_data, columns=drop_columns)
     del drop_columns
 
     # TODO: Convert 부분 활용방안 구상이 필요함, 일단은 인덱스 하드코딩해서 제외함
@@ -52,8 +54,10 @@ def app():
     train_data_array = train_dataset[:, 1:]
     train_label_array = train_dataset[:, 0]
 
-    norm = preprocessing.Normalizer()
-    enc = preprocessing.Encoder()
+    norm = prep.Normalizer()
+    enc = prep.Encoder()
+
+    # TODO: CSV 파일 내보내기 기능 구현 및 함수 테스트 중
 
     train_data = norm.normalize(train_data_array)
     test_data = norm.normalize(test_dataset)
@@ -63,9 +67,36 @@ def app():
 
     # users = df.encode_users(train_data)
 
+    dec = prep.Decoder()
+
+    train_appearances = dec.user_appearances(train_identifiers)
+    test_appearances = dec.user_appearances(test_identifiers)
+
+    """
+    Classifcation Models
+    """
+
+    ### Support Vector Machine, target="lin" -> Linear SVM, target="nlin" -> Nonlinear SVM
+    # svm = model.SVM(target="nlin")
+    # svm.model_training(train_data, train_labels)
+    #
+    # train_pred = svm.label_prediction(train_data)
+    # train_pred = dec.squeeze_predictions(train_pred, train_appearances)
+    #
+    # train_score = svm.f1_score(train_labels, train_pred)
+
+    # test_pred = svm.label_prediction(test_dataset)
+
+    ### Random Forest
     randf = model.RandomForest()
     randf.model_training(train_data, train_labels)
-    pred = randf.label_prediction(test_dataset)
+
+    train_pred = randf.label_prediction(train_data)
+    train_pred = dec.squeeze_predictions(train_pred, train_appearances)
+
+    test_score = randf.f1_score(train_labels, train_pred)
+
+    test_pred = randf.label_prediction(test_dataset)
 
     print("breakpoint")
     # nn = model.NeuralNetwork()

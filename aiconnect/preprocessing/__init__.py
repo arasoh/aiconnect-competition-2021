@@ -1,8 +1,8 @@
 from ._array import Array
 
-from ._dataframe import Dataframe
+from ._file import File
 
-from ._coder import Encoder
+from ._coder import Encoder, Decoder
 
 from ._normalizer import Normalizer
 
@@ -10,8 +10,9 @@ from ._tensor import Tensor
 
 __all__ = [
     "Array",
-    "Dataframe",
+    "File",
     "Encoder",
+    "Decoder",
     "Normalizer",
     "Tensor",
 ]
