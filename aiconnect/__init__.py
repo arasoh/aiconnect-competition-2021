@@ -11,6 +11,7 @@ def app():
 
     f = prep.File()
     enc = prep.Encoder()
+    dec = prep.Decoder()
 
     train_data, train_labels = f.build_dataframe(train_path, train=True)
     test_data, _ = f.build_dataframe(test_path, train=False)
@@ -52,11 +53,21 @@ def app():
     del drop_columns
 
     # TODO: Convert 부분 활용방안 구상이 필요함, 일단은 인덱스 하드코딩해서 제외함
+    train_slashes = train_dataset.iloc[:, 52:]
+    test_slashes = test_dataset.iloc[:, 51:]
+    decoded_train_slashes = dec.decode_slash(train_slashes)
+    decoded_test_slashes = dec.decode_slash(test_slashes)
+
     train_dataset = train_dataset.iloc[:, :52].to_numpy(dtype=float)
     test_dataset = test_dataset.iloc[:, :51].to_numpy(dtype=float)
 
     train_data_array = train_dataset[:, 1:]
+    train_data_array = np.concatenate((train_data_array, decoded_train_slashes), axis=1)
     train_label_array = train_dataset[:, 0]
+
+    test_dataset = np.concatenate((test_dataset, decoded_test_slashes), axis=1)
+
+    feature_size = test_dataset.shape[1]
 
     norm = prep.Normalizer()
 
@@ -70,60 +81,106 @@ def app():
 
     # users = df.encode_users(train_data)
 
-    dec = prep.Decoder()
-
     train_appearances = dec.user_appearances(train_identifiers)
     test_appearances = dec.user_appearances(test_identifiers)
 
     """
     Classifcation Models
     """
+    k_rate = 1
+    k_params = {
+        "k": int(feature_size * k_rate),
+    }
+    k_best = prep.KBest(k_params)
+
+    pred_margin = 0.6
 
     ### Support Vector Machine
     # train_params = {
-    #     "C": 10,
-    #     "kernel": "rbf",
+    #     "C": 5,
+    #     "kernel": "poly",
     #     "degree": 3,
+    #     "gamma": "auto",
     #     "prob": True,
     #     "tol": 1e-4,
-    #     "verbose": False,
+    #     "verbose": True,
     #     "state": 0,
     # }
     # svm = model.SVM(params=train_params)
     #
     # train_labels = np.squeeze(train_labels)
-    # svm.model_training(train_data, train_labels)
     #
-    # train_pred = svm.label_prediction(train_data)
-    # train_pred = dec.squeeze_predictions(train_pred, train_appearances, margin=0.4)
+    # k_best.model_training(train_data, train_labels)
+    # feature_indices = k_best.feature_indices()
     #
-    # train_score = svm.f1_score(train_labels, train_pred)
+    # reduced_train_data = train_data[:, feature_indices]
     #
-    # test_pred = svm.label_prediction(test_dataset)
+    # svm.model_training(reduced_train_data, train_labels)
+    #
+    # train_pred = svm.label_prediction(reduced_train_data)
+    # train_pred = dec.squeeze_predictions(
+    #     train_pred,
+    #     train_appearances,
+    #     margin=pred_margin,
+    # )
+    #
+    # train_score = svm.f1_score(train_true, train_pred)
+    # print(train_score)
+    # exit(0)
+    #
+    # reduced_test_data = test_data[:, feature_indices]
+    #
+    # test_pred = svm.label_prediction(reduced_test_data)
+    # test_pred = dec.squeeze_predictions(
+    #     test_pred,
+    #     test_appearances,
+    #     margin=pred_margin,
+    # )
+    #
+    # test_pred_enc = dec.decode_labels(test_pred, diagnosis)
+    #
+    # output_data = [list(test_appearances.keys()), test_pred_enc]
+    # f.write_csv(output_data, test_path)
 
     ### Random Forest
     train_params = {
-        "n_estimators": 128,
-        "depth": 32,
-        "state": 48,
-        "verbose": True,
+        "n_estimators": 256,
+        "depth": 128,
+        "split": 8,
+        "leaf": 1,
+        "max_features": "auto",
+        "state": 0,
+        "verbose": False,
     }
-    pred_margin = 0.4
+
     randf = model.RandomForest(params=train_params)
 
     train_labels = np.squeeze(train_labels)
-    randf.model_training(train_data, train_labels)
 
-    train_pred = randf.label_prediction(train_data)
+    k_best.model_training(train_data, train_labels)
+    feature_indices = k_best.feature_indices()
+
+    reduced_train_data = train_data[:, feature_indices]
+
+    randf.model_training(reduced_train_data, train_labels)
+
+    train_pred = randf.label_prediction(reduced_train_data)
     train_pred = dec.squeeze_predictions(
-        train_pred, train_appearances, margin=pred_margin
+        train_pred,
+        train_appearances,
+        margin=pred_margin,
     )
 
     train_score = randf.f1_score(train_true, train_pred)
     print(train_score)
 
-    test_pred = randf.label_prediction(test_data)
-    test_pred = dec.squeeze_predictions(test_pred, test_appearances, margin=pred_margin)
+    reduced_test_data = test_data[:, feature_indices]
+    test_pred = randf.label_prediction(reduced_test_data)
+    test_pred = dec.squeeze_predictions(
+        test_pred,
+        test_appearances,
+        margin=pred_margin,
+    )
 
     test_pred_enc = dec.decode_labels(test_pred, diagnosis)
 

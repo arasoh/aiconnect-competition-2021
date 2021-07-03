@@ -1,18 +1,15 @@
-from ._array import Array
+from ._coder import Decoder, Encoder
+
+from ._feature_selection import KBest
 
 from ._file import File
 
-from ._coder import Encoder, Decoder
-
 from ._normalizer import Normalizer
 
-from ._tensor import Tensor
-
 __all__ = [
-    "Array",
-    "File",
-    "Encoder",
     "Decoder",
+    "Encoder",
+    "KBest",
+    "File",
     "Normalizer",
-    "Tensor",
 ]

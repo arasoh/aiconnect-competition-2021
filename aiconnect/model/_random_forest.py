@@ -8,11 +8,17 @@ class Classifier:
         self,
         n_estimators: int = 100,
         depth: int = 10,
+        split=2,
+        leaf=1,
+        max_features="auto",
         state: int = 5,
         verbose: bool = False,
     ) -> None:
         self.n_estimators = n_estimators
         self.depth = depth
+        self.split = split
+        self.leaf = leaf
+        self.max_features = max_features
         self.state = state
         self.verbose = verbose
 
@@ -20,6 +26,9 @@ class Classifier:
         clf = RandomForestClassifier(
             n_estimators=self.n_estimators,
             max_depth=self.depth,
+            min_samples_split=self.split,
+            min_samples_leaf=self.leaf,
+            max_features=self.max_features,
             random_state=self.state,
             verbose=self.verbose,
         )
@@ -33,6 +42,9 @@ class RandomForest:
             clf = Classifier(
                 n_estimators=params["n_estimators"],
                 depth=params["depth"],
+                split=params["split"],
+                leaf=params["leaf"],
+                max_features=params["max_features"],
                 state=params["state"],
                 verbose=params["verbose"],
             )

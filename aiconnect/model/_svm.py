@@ -11,6 +11,7 @@ class Classifier:
         C: float = 1.0,
         kernel: str = "rbf",
         degree: int = 3,
+        gamma="scale",
         prob: bool = False,
         tol: float = 1e-3,
         verbose: bool = False,
@@ -19,6 +20,7 @@ class Classifier:
         self.C = C
         self.kernel = kernel
         self.degree = degree
+        self.gamma = gamma
         self.prob = prob
         self.tol = tol
         self.verbose = verbose
@@ -29,6 +31,7 @@ class Classifier:
             C=self.C,
             kernel=self.kernel,
             degree=self.degree,
+            gamma=self.gamma,
             probability=self.prob,
             tol=self.tol,
             verbose=self.verbose,
@@ -44,6 +47,13 @@ class SVM:
         if params is not None:
             clf = Classifier(
                 C=params["C"],
+                kernel=params["kernel"],
+                degree=params["degree"],
+                gamma=params["gamma"],
+                prob=params["prob"],
+                tol=params["tol"],
+                verbose=params["verbose"],
+                state=params["state"],
             )
         else:
             clf = Classifier()
