@@ -107,11 +107,11 @@ class File:
         return new_dataframe
 
     def write_csv(self, data, path):
-        csv_path = path + "/submission.csv"
+        csv_path = path + "/sample_submission.csv"
         data = np.array(data, ndmin=2).transpose()
 
         dataframe = pd.DataFrame(data, columns=["ID", "DIAG_NM"])
 
         dataframe.to_csv(csv_path)
 
-        return "CSV 파일이 생성됨"
+        return print("CSV 파일이 생성됨")

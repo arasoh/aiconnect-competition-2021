@@ -18,6 +18,55 @@ class Decoder:
     def __init__(self) -> None:
         pass
 
+    def decode_slash(self, dataframe):
+        decoded_features = []
+
+        for data in dataframe.itertuples():
+            features = [
+                data[1],
+                data[2],
+                data[3],
+                data[4],
+                data[5],
+            ]
+
+            decoded_feature = []
+
+            stop_words = ["", "'", "[", "]"]
+
+            for _, feature in enumerate(features):
+                feature_temp = feature.split("/")
+
+                if len(feature_temp) > 1:
+                    feature = feature_temp
+                else:
+                    feature_temp = feature.lstrip("[").rstrip("]")
+                    feature = feature_temp.split(",")
+
+                try:
+                    for stop_word in stop_words:
+                        feature.remove(stop_word)
+                except:
+                    pass
+
+                feature = np.array(feature, dtype=np.float)
+
+                feature_avg = np.average(feature)
+                feature_std = np.std(feature)
+
+                decoded_feature.extend(
+                    [
+                        feature_avg,
+                        feature_std,
+                    ]
+                )
+
+            decoded_features.append(decoded_feature)
+
+        decoded_features = np.array(decoded_features)
+
+        return decoded_features
+
     def user_appearances(self, dataframe) -> dict:
         user_count = 0
         data_counts = []
@@ -47,8 +96,8 @@ class Decoder:
         slice_start = 0
         slice_count = 0
 
-        cn_max = 1 - margin
-        mci_max = 2 - margin
+        cn_max = 1 - (margin**2)
+        mci_max = 2 - (margin**2)
 
         pred = np.squeeze(pred)
         new_pred = []
