@@ -8,3 +8,6 @@ __pycache__/
 
 # Environment files
 .python-version
+
+# CSV data files
+*.csv

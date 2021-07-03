@@ -1,69 +1,61 @@
 import aiconnect.validation as val
 
-import numpy as np
-
-from sklearn.svm import LinearSVC, SVC
+from sklearn.ensemble import RandomForestClassifier
 
 
 class Classifier:
     def __init__(
         self,
-        C: float = 1.0,
-        kernel: str = "rbf",
-        degree: int = 3,
-        gamma="scale",
-        prob: bool = False,
-        tol: float = 1e-3,
+        n_estimators: int = 100,
+        depth: int = 10,
+        split=2,
+        leaf=1,
+        max_features="auto",
+        state: int = 5,
         verbose: bool = False,
-        state: int = None,
     ) -> None:
-        self.C = C
-        self.kernel = kernel
-        self.degree = degree
-        self.gamma = gamma
-        self.prob = prob
-        self.tol = tol
-        self.verbose = verbose
+        self.n_estimators = n_estimators
+        self.depth = depth
+        self.split = split
+        self.leaf = leaf
+        self.max_features = max_features
         self.state = state
+        self.verbose = verbose
 
     def forward(self):
-        clf = SVC(
-            C=self.C,
-            kernel=self.kernel,
-            degree=self.degree,
-            gamma=self.gamma,
-            probability=self.prob,
-            tol=self.tol,
-            verbose=self.verbose,
+        clf = RandomForestClassifier(
+            n_estimators=self.n_estimators,
+            max_depth=self.depth,
+            min_samples_split=self.split,
+            min_samples_leaf=self.leaf,
+            max_features=self.max_features,
             random_state=self.state,
+            verbose=self.verbose,
         )
 
         return clf
 
 
-class SVM:
-    def __init__(self, params: dict = None):
-
+class RandomForest:
+    def __init__(self, params: dict = None) -> None:
         if params is not None:
             clf = Classifier(
-                C=params["C"],
-                kernel=params["kernel"],
-                degree=params["degree"],
-                gamma=params["gamma"],
-                prob=params["prob"],
-                tol=params["tol"],
-                verbose=params["verbose"],
+                n_estimators=params["n_estimators"],
+                depth=params["depth"],
+                split=params["split"],
+                leaf=params["leaf"],
+                max_features=params["max_features"],
                 state=params["state"],
+                verbose=params["verbose"],
             )
         else:
             clf = Classifier()
-
         self.model = clf.forward()
 
-    def model_training(self, data, label):
-        self.model.fit(data, label)
+    def model_training(self, data, labels) -> None:
+        self.model.fit(data, labels)
 
-    def label_prediction(self, data):
+    def label_prediction(self, data) -> None:
         pred = self.model.predict(data)
 
         return pred
