@@ -1,3 +1,5 @@
+import aiconnect.validation as val
+
 import torch
 import torch.cuda as cuda
 import torch.nn as nn
@@ -29,8 +31,8 @@ class _4LayerPerceptron(nn.Module):
         nn.init.xavier_uniform_(linear4.weight)
 
         self.layer1 = nn.Sequential(linear1, bn1, relu, dropout)
-        self.layer2 = nn.Sequential(linear2, bn1, relu, dropout)
-        self.layer3 = nn.Sequential(linear3, bn1, relu, dropout)
+        self.layer2 = nn.Sequential(linear2, bn2, relu, dropout)
+        self.layer3 = nn.Sequential(linear3, bn3, relu, dropout)
         self.layer4 = nn.Sequential(linear4)
 
     def forward(self, x):
@@ -102,3 +104,37 @@ class NeuralNetwork:
 
     def model_validation(self, data, labels):
         pass
+
+    def f1_score(self, true, pred):
+        cn_index = 0
+        mci_index = 0
+        dem_index = 0
+
+        metrics = val.Metrics(true, pred)
+
+        """
+            CN score
+            """
+        cn_precision = metrics.precision(index=cn_index)
+        cn_recall = metrics.recall(index=cn_index)
+        cn_f1_score = metrics.f1_score(cn_precision, cn_recall)
+
+        """
+            MCI score
+            """
+        mci_precision = metrics.precision(index=mci_index)
+        mci_recall = metrics.recall(index=mci_index)
+        mci_f1_score = metrics.f1_score(mci_precision, mci_recall)
+
+        """
+            Dem score
+            """
+        dem_precision = metrics.precision(index=dem_index)
+        dem_recall = metrics.recall(index=dem_index)
+        dem_f1_score = metrics.f1_score(dem_precision, dem_recall)
+
+        scores = [cn_f1_score, mci_f1_score, dem_f1_score]
+
+        f1_score = metrics.macro_f1_score(scores)
+
+        return f1_score

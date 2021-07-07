@@ -143,53 +143,53 @@ def app():
     # f.write_csv(output_data, test_path)
 
     ### Random Forest
-    train_params = {
-        "n_estimators": 256,
-        "depth": 128,
-        "split": 8,
-        "leaf": 1,
-        "max_features": "auto",
-        "state": 0,
-        "verbose": False,
-    }
+    # train_params = {
+    #    "n_estimators": 256,
+    #    "depth": 128,
+    #    "split": 8,
+    #    "leaf": 1,
+    #    "max_features": "auto",
+    #    "state": 0,
+    #    "verbose": False,
+    # }
 
-    randf = model.RandomForest(params=train_params)
+    # randf = model.RandomForest(params=train_params)
 
-    train_labels = np.squeeze(train_labels)
+    # train_labels = np.squeeze(train_labels)
 
-    k_best.model_training(train_data, train_labels)
-    feature_indices = k_best.feature_indices()
+    # k_best.model_training(train_data, train_labels)
+    # feature_indices = k_best.feature_indices()
 
-    reduced_train_data = train_data[:, feature_indices]
+    # reduced_train_data = train_data[:, feature_indices]
 
-    randf.model_training(reduced_train_data, train_labels)
+    # randf.model_training(reduced_train_data, train_labels)
 
-    train_pred = randf.label_prediction(reduced_train_data)
-    train_pred = dec.squeeze_predictions(
-        train_pred,
-        train_appearances,
-        margin=pred_margin,
-    )
+    # train_pred = randf.label_prediction(reduced_train_data)
+    # train_pred = dec.squeeze_predictions(
+    #    train_pred,
+    #    train_appearances,
+    #    margin=pred_margin,
+    # )
 
-    train_score = randf.f1_score(train_true, train_pred)
-    print(train_score)
+    # train_score = randf.f1_score(train_true, train_pred)
+    # print(train_score)
 
-    reduced_test_data = test_data[:, feature_indices]
-    test_pred = randf.label_prediction(reduced_test_data)
-    test_pred = dec.squeeze_predictions(
-        test_pred,
-        test_appearances,
-        margin=pred_margin,
-    )
+    # reduced_test_data = test_data[:, feature_indices]
+    # test_pred = randf.label_prediction(reduced_test_data)
+    # test_pred = dec.squeeze_predictions(
+    #    test_pred,
+    #    test_appearances,
+    #    margin=pred_margin,
+    # )
 
-    test_pred_enc = dec.decode_labels(test_pred, diagnosis)
+    # test_pred_enc = dec.decode_labels(test_pred, diagnosis)
 
-    output_data = [list(test_appearances.keys()), test_pred_enc]
-    f.write_csv(output_data, test_path)
+    # output_data = [list(test_appearances.keys()), test_pred_enc]
+    # f.write_csv(output_data, test_path)
 
     ### Neural network
-    # nn = model.NeuralNetwork()
-    #
-    # metric = metrics.Metrics
+    nn = model.NeuralNetwork(n_features=k_params["k"])
+
+    nn.model_training(train_data, train_labels)
 
     return 0
