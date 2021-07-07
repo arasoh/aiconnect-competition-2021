@@ -1,69 +1,53 @@
 import torch
 import torch.cuda as cuda
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils as utils
 
 
-class DNN(nn.Module):
-    def __init__(self):
+class _4LayerPerceptron(nn.Module):
+    def __init__(self, n_features):
         super().__init__()
-        self.dropout_rate = 0.5
+        dropout_rate = 0.5
 
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-        )
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-        )
+        linear1 = nn.Linear(n_features, 32, bias=True)
+        linear2 = nn.Linear(32, 128, bias=True)
+        linear3 = nn.Linear(128, 32, bias=True)
+        linear4 = nn.Linear(32, 3, bias=True)
 
-        self.layer3 = nn.Sequential(
-            nn.Conv2d(63, 128, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-        )
+        bn1 = nn.BatchNorm1d(32)
+        bn2 = nn.BatchNorm1d(128)
+        bn3 = nn.BatchNorm1d(32)
 
-        self.fc1 = nn.Linear(4 * 4 * 128, 256, bias=True)
-        self.layer4 = nn.Sequential(
-            self.fc1,
-            nn.ReLU(),
-            nn.Dropout(p=1 - self.dropout_rate),
-        )
-        self.fc2 = nn.Linear(256, 3, bias=True)
+        relu = nn.ReLU()
+
+        dropout = nn.Dropout(p=dropout_rate)
+
+        nn.init.xavier_uniform_(linear1.weight)
+        nn.init.xavier_uniform_(linear2.weight)
+        nn.init.xavier_uniform_(linear3.weight)
+        nn.init.xavier_uniform_(linear4.weight)
+
+        self.layer1 = nn.Sequential(linear1, bn1, relu, dropout)
+        self.layer2 = nn.Sequential(linear2, bn1, relu, dropout)
+        self.layer3 = nn.Sequential(linear3, bn1, relu, dropout)
+        self.layer4 = nn.Sequential(linear4)
 
     def forward(self, x):
         out = self.layer1(x)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = out.view(out.size(0), -1)
         out = self.layer4(out)
-        out = self.fc2(out)
 
         return out
 
 
 class NeuralNetwork:
-    def __init__(self) -> None:
+    def __init__(self, n_features: int) -> None:
         self.device = "cuda" if cuda.is_available() else "cpu"
+        self.model = _4LayerPerceptron(n_features=n_features).to(self.device)
 
-    def preprocessing(self, dataset, labels):
-
-        dataset = torch.FloatTensor(dataset)
-        labels = torch.LongTensor(labels)
-
-        model = DNN().to(self.device)
-        learning_rate = 0.001
-
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-        return model, optimizer
-
-    def model_training(self, model, optimizer, dataset, labels):
+    def model_training(self, data, labels):
         # for reproducibility
         torch.manual_seed(1)
         if self.device is "cuda":
@@ -71,25 +55,35 @@ class NeuralNetwork:
 
         training_epochs = 16
         batch_size = 128
+        learning_rate = 0.001
 
+        data = torch.Tensor(data)
+        labels = torch.Tensor(labels)
+
+        dataset = utils.data.TensorDataset(data, labels)
         data_loader = utils.data.DataLoader(
             dataset=dataset,
             batch_size=batch_size,
             shuffle=True,
+            drop_last=True,
         )
+
+        criterion = nn.CrossEntropyLoss().to(self.device)
+        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
         total_batch = len(data_loader)
 
         print("Training begins...")
+        self.model.train()
         for epoch in range(training_epochs):
             average_cost = 0
 
-            for data, label in data_loader:
+            for data, labels in data_loader:
                 data = data.to(self.device)
-                label = label.to(self.device)
+                labels = labels.to(self.device)
 
-                hypothesis = model(data)
-                cost = F.cross_entropy(hypothesis, label)
+                hypothesis = self.model(data)
+                cost = criterion(hypothesis, labels)
 
                 optimizer.zero_grad()
                 cost.backward()
@@ -97,7 +91,14 @@ class NeuralNetwork:
 
                 average_cost += cost / total_batch
 
+            print(
+                "Epoch:",
+                "%04d" % (epoch + 1),
+                "cost =",
+                "{:.9f}".format(average_cost),
+            )
+
         print("Training is completed.")
 
-    def model_validation(self, model, optimizer, dataset, labels):
+    def model_validation(self, data, labels):
         pass
