@@ -1,4 +1,4 @@
-import aiconnect.model as model
+import aiconnect.classifier as model
 import aiconnect.preprocessing as prep
 
 import numpy as np
@@ -87,11 +87,13 @@ def app():
     """
     Classifcation Models
     """
-    k_rate = 1
+    k_rate = 0.8
     k_params = {
         "k": int(feature_size * k_rate),
     }
     k_best = prep.KBest(k_params)
+    k_best.model_training(train_data, train_labels)
+    feature_indices = k_best.feature_indices()
 
     pred_margin = 0.6
 
@@ -106,12 +108,9 @@ def app():
     #     "verbose": True,
     #     "state": 0,
     # }
-    # svm = model.SVM(params=train_params)
+    # svm = classifier.SVM(params=train_params)
     #
     # train_labels = np.squeeze(train_labels)
-    #
-    # k_best.model_training(train_data, train_labels)
-    # feature_indices = k_best.feature_indices()
     #
     # reduced_train_data = train_data[:, feature_indices]
     #
@@ -153,12 +152,9 @@ def app():
     #    "verbose": False,
     # }
 
-    # randf = model.RandomForest(params=train_params)
+    # randf = classifier.RandomForest(params=train_params)
 
     # train_labels = np.squeeze(train_labels)
-
-    # k_best.model_training(train_data, train_labels)
-    # feature_indices = k_best.feature_indices()
 
     # reduced_train_data = train_data[:, feature_indices]
 
@@ -188,8 +184,24 @@ def app():
     # f.write_csv(output_data, test_path)
 
     ### Neural network
-    nn = model.NeuralNetwork(n_features=k_params["k"])
+    NN_PATH = "./aiconnect/model/neural_network.pth"
 
-    nn.model_training(train_data, train_labels)
+    nn = classifier.NeuralNetwork(n_features=k_params["k"], path=NN_PATH)
+
+    reduced_train_data = train_data[:, feature_indices]
+
+    nn.model_training(reduced_train_data, train_labels)
+
+    train_pred = nn.label_prediction(reduced_train_data)
+
+    train_pred = dec.squeeze_predictions(
+        train_pred,
+        train_appearances,
+        margin=pred_margin,
+    )
+
+    train_score = nn.f1_score(train_true, train_pred)
+
+    print(train_score)
 
     return 0

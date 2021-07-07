@@ -96,8 +96,8 @@ class Decoder:
         slice_start = 0
         slice_count = 0
 
-        cn_max = 1 - (margin**2)
-        mci_max = 2 - (margin**2)
+        cn_max = 1 - (margin ** 2)
+        mci_max = 2 - (margin ** 2)
 
         pred = np.squeeze(pred)
         new_pred = []

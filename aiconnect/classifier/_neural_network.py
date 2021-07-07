@@ -8,18 +8,18 @@ import torch.utils as utils
 
 
 class _4LayerPerceptron(nn.Module):
-    def __init__(self, n_features):
+    def __init__(self, n_features: int):
         super().__init__()
-        dropout_rate = 0.5
+        dropout_rate = 0.25
 
-        linear1 = nn.Linear(n_features, 32, bias=True)
-        linear2 = nn.Linear(32, 128, bias=True)
-        linear3 = nn.Linear(128, 32, bias=True)
-        linear4 = nn.Linear(32, 3, bias=True)
+        linear1 = nn.Linear(n_features, 128, bias=True)
+        linear2 = nn.Linear(128, 512, bias=True)
+        linear3 = nn.Linear(512, 128, bias=True)
+        linear4 = nn.Linear(128, 3, bias=True)
 
-        bn1 = nn.BatchNorm1d(32)
-        bn2 = nn.BatchNorm1d(128)
-        bn3 = nn.BatchNorm1d(32)
+        bn1 = nn.BatchNorm1d(128)
+        bn2 = nn.BatchNorm1d(512)
+        bn3 = nn.BatchNorm1d(128)
 
         relu = nn.ReLU()
 
@@ -45,9 +45,10 @@ class _4LayerPerceptron(nn.Module):
 
 
 class NeuralNetwork:
-    def __init__(self, n_features: int) -> None:
+    def __init__(self, n_features: int, path: str) -> None:
         self.device = "cuda" if cuda.is_available() else "cpu"
-        self.model = _4LayerPerceptron(n_features=n_features).to(self.device)
+        self.n_features = n_features
+        self.path = path
 
     def model_training(self, data, labels):
         # for reproducibility
@@ -55,12 +56,13 @@ class NeuralNetwork:
         if self.device is "cuda":
             cuda.manual_seed_all(1)
 
-        training_epochs = 16
-        batch_size = 128
-        learning_rate = 0.001
+        training_epochs = 256
+        batch_size = 256
+        learning_rate = 0.0006
 
-        data = torch.Tensor(data)
-        labels = torch.Tensor(labels)
+        data = torch.FloatTensor(data)
+        labels = torch.LongTensor(labels)
+        labels = torch.squeeze(labels)
 
         dataset = utils.data.TensorDataset(data, labels)
         data_loader = utils.data.DataLoader(
@@ -70,13 +72,15 @@ class NeuralNetwork:
             drop_last=True,
         )
 
+        model = _4LayerPerceptron(n_features=self.n_features).to(self.device)
+
         criterion = nn.CrossEntropyLoss().to(self.device)
-        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
         total_batch = len(data_loader)
 
         print("Training begins...")
-        self.model.train()
+
         for epoch in range(training_epochs):
             average_cost = 0
 
@@ -84,7 +88,7 @@ class NeuralNetwork:
                 data = data.to(self.device)
                 labels = labels.to(self.device)
 
-                hypothesis = self.model(data)
+                hypothesis = model(data)
                 cost = criterion(hypothesis, labels)
 
                 optimizer.zero_grad()
@@ -102,8 +106,23 @@ class NeuralNetwork:
 
         print("Training is completed.")
 
-    def model_validation(self, data, labels):
-        pass
+        NN_PATH = self.path
+        torch.save(model.state_dict(), NN_PATH)
+
+        return 0
+
+    def label_prediction(self, data):
+        data = torch.FloatTensor(data).to(self.device)
+
+        model = _4LayerPerceptron(n_features=self.n_features).to(self.device)
+        model.load_state_dict(torch.load(self.path))
+
+        pred = model(data)
+        _, pred = torch.max(pred, 1)
+
+        pred = pred.to("cpu").numpy()
+
+        return pred
 
     def f1_score(self, true, pred):
         cn_index = 0
