@@ -1,4 +1,4 @@
-import aiconnect.classifier as model
+import aiconnect.classifier as clf
 import aiconnect.preprocessing as prep
 
 import numpy as np
@@ -108,7 +108,7 @@ def app():
     #     "verbose": True,
     #     "state": 0,
     # }
-    # svm = classifier.SVM(params=train_params)
+    # svm = clf.SVM(params=train_params)
     #
     # train_labels = np.squeeze(train_labels)
     #
@@ -152,7 +152,7 @@ def app():
     #    "verbose": False,
     # }
 
-    # randf = classifier.RandomForest(params=train_params)
+    # randf = clf.RandomForest(params=train_params)
 
     # train_labels = np.squeeze(train_labels)
 
@@ -186,7 +186,7 @@ def app():
     ### Neural network
     NN_PATH = "./aiconnect/model/neural_network.pth"
 
-    nn = classifier.NeuralNetwork(n_features=k_params["k"], path=NN_PATH)
+    nn = clf.NeuralNetwork(n_features=k_params["k"], path=NN_PATH)
 
     reduced_train_data = train_data[:, feature_indices]
 
