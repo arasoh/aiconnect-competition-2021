@@ -202,7 +202,7 @@ def app():
     )
 
     train_met = val.Metrics(train_true, train_pred)
-    train_score = train_met.macro_f1_score(train_true, train_pred)
+    train_score = train_met.macro_f1_score()
 
     print(train_score)
 

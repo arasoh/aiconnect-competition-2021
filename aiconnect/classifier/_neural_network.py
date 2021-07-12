@@ -104,14 +104,18 @@ class _8LayerPerceptron(nn.Module):
 class NeuralNetwork:
     def __init__(self, dnn: str, n_features: int, path: str) -> None:
         self.device = "cuda" if cuda.is_available() else "cpu"
-        self.dnn = dnn
-        self.n_features = n_features
+        
         self.path = path
+        
+        if dnn == "4-layer":
+            self.model = _4LayerPerceptron(n_features=n_features).to(self.device)
+        elif dnn == "8-layer":
+            self.model = _8LayerPerceptron(n_features=n_features).to(self.device)
 
     def model_training(self, data, labels):
         # for reproducibility
         torch.manual_seed(1)
-        if self.device is "cuda":
+        if self.device == "cuda":
             cuda.manual_seed_all(1)
 
         training_epochs = 256
@@ -130,13 +134,9 @@ class NeuralNetwork:
             drop_last=True,
         )
 
-        if self.dnn is "4-layer":
-            model = _4LayerPerceptron(n_features=self.n_features).to(self.device)
-        elif self.dnn is "8-layer":
-            model = _8LayerPerceptron(n_features=self.n_features).to(self.device)
 
         criterion = nn.CrossEntropyLoss().to(self.device)
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
         total_batch = len(data_loader)
 
@@ -149,7 +149,7 @@ class NeuralNetwork:
                 data = data.to(self.device)
                 labels = labels.to(self.device)
 
-                hypothesis = model(data)
+                hypothesis = self.model(data)
                 cost = criterion(hypothesis, labels)
 
                 optimizer.zero_grad()
@@ -168,17 +168,16 @@ class NeuralNetwork:
         print("Training is completed.")
 
         NN_PATH = self.path
-        torch.save(model.state_dict(), NN_PATH)
+        torch.save(self.model.state_dict(), NN_PATH)
 
         return 0
 
     def label_prediction(self, data):
         data = torch.FloatTensor(data).to(self.device)
 
-        model = _4LayerPerceptron(n_features=self.n_features).to(self.device)
-        model.load_state_dict(torch.load(self.path))
+        self.model.load_state_dict(torch.load(self.path))
 
-        pred = model(data)
+        pred = self.model(data)
         _, pred = torch.max(pred, 1)
 
         pred = pred.to("cpu").numpy()
