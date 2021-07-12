@@ -1,4 +1,4 @@
-import aiconnect.classifier as model
+import aiconnect.classifier as clf
 import aiconnect.preprocessing as prep
 
 import numpy as np
