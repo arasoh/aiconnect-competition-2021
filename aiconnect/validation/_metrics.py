@@ -32,7 +32,28 @@ class Metrics:
 
         return score
 
-    def macro_f1_score(self, f1_scores: list) -> float:
-        macro_score = round(sum(f1_scores) / 3, 2)
+    def macro_f1_score(self):
+        cn_index = 0
+        mci_index = 1
+        dem_index = 2
 
-        return macro_score
+        """Cognitive normal(CN) score"""
+        cn_precision = self.precision(index=cn_index)
+        cn_recall = self.recall(index=cn_index)
+        cn_f1_score = self.f1_score(cn_precision, cn_recall)
+
+        """Mild cognitive impairment(MCI) score"""
+        mci_precision = self.precision(index=mci_index)
+        mci_recall = self.recall(index=mci_index)
+        mci_f1_score = self.f1_score(mci_precision, mci_recall)
+
+        """Dementia(Dem) score"""
+        dem_precision = self.precision(index=dem_index)
+        dem_recall = self.recall(index=dem_index)
+        dem_f1_score = self.f1_score(dem_precision, dem_recall)
+
+        f1_scores = [cn_f1_score, mci_f1_score, dem_f1_score]
+
+        macro_f1_score = round(sum(f1_scores) / 3, 2)
+
+        return macro_f1_score

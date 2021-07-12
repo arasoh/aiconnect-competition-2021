@@ -67,23 +67,17 @@ class RandomForest:
 
         metrics = val.Metrics(true, pred)
 
-        """
-        CN score
-        """
+        """Cognitive normal(CN) score"""
         cn_precision = metrics.precision(index=cn_index)
         cn_recall = metrics.recall(index=cn_index)
         cn_f1_score = metrics.f1_score(cn_precision, cn_recall)
 
-        """
-        MCI score
-        """
+        """Mild cognitive impairment(MCI) score"""
         mci_precision = metrics.precision(index=mci_index)
         mci_recall = metrics.recall(index=mci_index)
         mci_f1_score = metrics.f1_score(mci_precision, mci_recall)
 
-        """
-        Dem score
-        """
+        """Dementia(Dem) score"""
         dem_precision = metrics.precision(index=dem_index)
         dem_recall = metrics.recall(index=dem_index)
         dem_f1_score = metrics.f1_score(dem_precision, dem_recall)

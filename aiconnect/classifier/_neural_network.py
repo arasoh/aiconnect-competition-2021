@@ -44,9 +44,67 @@ class _4LayerPerceptron(nn.Module):
         return out
 
 
+class _8LayerPerceptron(nn.Module):
+    def __init__(self, n_features: int):
+        super().__init__()
+        dropout_rate = 0.25
+
+        linear1 = nn.Linear(n_features, 128, bias=True)
+        linear2 = nn.Linear(128, 256, bias=True)
+        linear3 = nn.Linear(256, 512, bias=True)
+        linear4 = nn.Linear(512, 512, bias=True)
+        linear5 = nn.Linear(512, 256, bias=True)
+        linear6 = nn.Linear(256, 128, bias=True)
+        linear7 = nn.Linear(128, 64, bias=True)
+        linear8 = nn.Linear(64, 3, bias=True)
+
+        bn1 = nn.BatchNorm1d(128)
+        bn2 = nn.BatchNorm1d(256)
+        bn3 = nn.BatchNorm1d(512)
+        bn4 = nn.BatchNorm1d(512)
+        bn5 = nn.BatchNorm1d(256)
+        bn6 = nn.BatchNorm1d(128)
+        bn7 = nn.BatchNorm1d(64)
+
+        relu = nn.ReLU()
+
+        dropout = nn.Dropout(p=dropout_rate)
+
+        nn.init.xavier_uniform_(linear1.weight)
+        nn.init.xavier_uniform_(linear2.weight)
+        nn.init.xavier_uniform_(linear3.weight)
+        nn.init.xavier_uniform_(linear4.weight)
+        nn.init.xavier_uniform_(linear5.weight)
+        nn.init.xavier_uniform_(linear6.weight)
+        nn.init.xavier_uniform_(linear7.weight)
+        nn.init.xavier_uniform_(linear8.weight)
+
+        self.layer1 = nn.Sequential(linear1, bn1, relu, dropout)
+        self.layer2 = nn.Sequential(linear2, bn2, relu, dropout)
+        self.layer3 = nn.Sequential(linear3, bn3, relu, dropout)
+        self.layer4 = nn.Sequential(linear4, bn4, relu, dropout)
+        self.layer5 = nn.Sequential(linear5, bn5, relu, dropout)
+        self.layer6 = nn.Sequential(linear6, bn6, relu, dropout)
+        self.layer7 = nn.Sequential(linear7, bn7, relu, dropout)
+        self.layer8 = nn.Sequential(linear8)
+
+    def forward(self, x):
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)
+        out = self.layer6(out)
+        out = self.layer7(out)
+        out = self.layer8(out)
+
+        return out
+
+
 class NeuralNetwork:
-    def __init__(self, n_features: int, path: str) -> None:
+    def __init__(self, dnn: str, n_features: int, path: str) -> None:
         self.device = "cuda" if cuda.is_available() else "cpu"
+        self.dnn = dnn
         self.n_features = n_features
         self.path = path
 
@@ -72,7 +130,10 @@ class NeuralNetwork:
             drop_last=True,
         )
 
-        model = _4LayerPerceptron(n_features=self.n_features).to(self.device)
+        if self.dnn is "4-layer":
+            model = _4LayerPerceptron(n_features=self.n_features).to(self.device)
+        elif self.dnn is "8-layer":
+            model = _8LayerPerceptron(n_features=self.n_features).to(self.device)
 
         criterion = nn.CrossEntropyLoss().to(self.device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -123,37 +184,3 @@ class NeuralNetwork:
         pred = pred.to("cpu").numpy()
 
         return pred
-
-    def f1_score(self, true, pred):
-        cn_index = 0
-        mci_index = 0
-        dem_index = 0
-
-        metrics = val.Metrics(true, pred)
-
-        """
-            CN score
-            """
-        cn_precision = metrics.precision(index=cn_index)
-        cn_recall = metrics.recall(index=cn_index)
-        cn_f1_score = metrics.f1_score(cn_precision, cn_recall)
-
-        """
-            MCI score
-            """
-        mci_precision = metrics.precision(index=mci_index)
-        mci_recall = metrics.recall(index=mci_index)
-        mci_f1_score = metrics.f1_score(mci_precision, mci_recall)
-
-        """
-            Dem score
-            """
-        dem_precision = metrics.precision(index=dem_index)
-        dem_recall = metrics.recall(index=dem_index)
-        dem_f1_score = metrics.f1_score(dem_precision, dem_recall)
-
-        scores = [cn_f1_score, mci_f1_score, dem_f1_score]
-
-        f1_score = metrics.macro_f1_score(scores)
-
-        return f1_score

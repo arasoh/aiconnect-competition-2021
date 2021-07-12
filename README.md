@@ -7,11 +7,11 @@
 - 이형석
 - 이혜정
 - 정중팀
-- 최강해 (팀장)
+- 최강해
 
 ### 1.1. 참여 과제
 
-주제: 치매 예방을 위한 라이프로그 치매 분류 모델
+과제명: 치매 예방을 위한 라이프로그 치매 분류 모델
 
 ## 2. 프로그래밍 언어
 
@@ -21,7 +21,7 @@
 
 ### 2.2. 버전 정보
 
-~~본 애플리케이션은 주최 측에서 규정한대로 **Python 3.6.10** 버전을 사용한다.~~
+~~본 애플리케이션은 주최 측에서 규정한대로 **Python 3.6.10** 버전을 사용한다.~~  
 본 애플리케이션은 Python 재단에서 배포한 최신 Security bug fix 버전을 사용한다. (Python 3.8.11, 2021년 7월 12일 기준)
 
 ### 2.3. 외부 라이브러리의 사용
@@ -90,27 +90,18 @@ $ python app.py [모델] [훈련/검증]
 
 ##### **표 2.** Confusion Matrix
 
-정밀도 (Precision)
+### 3.1.정밀도 (Precision)
 
-- 정의
-- _Precision = TP / (TP + FP)_
+$$Presion = \frac{TP}{TP + FP}$$
 
-재현율 (Recall)
+### 3.2. 재현율 (Recall)
 
-- 정의
-- _Recall = TP / (TP + TN)_
+$$Recall = \frac{TP}{TP + TN}$$
 
-Macro F1 Score
+### 3.3. F1 Score
 
-- 정의
-- _F1 score = 2 x (precision x recall) / (precision + recall)_
+$$F1 score = 2 \times \frac{precision \times recall} {precision + recall}$$
 
-## 4. 환경변수 파일
+### 3.4. Macro F1 Score
 
-.gitignore
-
-- Git 관련 환경변수 파일
-
-requirements.txt
-
-- 파이썬 라이브러리 종속성 파일
+$$Macro F1 score = \sum_{i=1}^3 (F1 score)_i$$
